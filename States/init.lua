@@ -1,12 +1,15 @@
 --[[
 
-    Reliable Replicated States.
+    Reliable, replicated States.
+    Initialied upon first require, must be initialized on both Client and Server.
 
-    Initialied upon first require,
-    Must be initialized from both Client and Server.
-
-    Create a state by
 ]]
+
+-----------------------------------------------------------------------------------------
+-- Set this to a higher value if you are consistently having "getCurrentReplicated" error.
+-- This would be happening if the game you are running States on is a larger game.
+local CLIENT_GET_WAIT_SEC = 3
+-----------------------------------------------------------------------------------------
 
 export type States = {
     Create: (self: States, properties: StateProperties, defaultVar: table) -> (State),
@@ -70,7 +73,7 @@ end
 function State:set(key: string, new: any)
     if self.properties.replicated then
         if RunService:IsClient() then
-            assert(not self.properties.clientReadOnly, "Client cannot edit StateVariable " .. tostring(key) .. "!")
+            assert(not self.properties.clientReadOnly, "Client cannot edit State " .. self.properties.id)
             local success, response = pcall(function()
                 return RF:InvokeServer("_stateSetAsync", self.properties.id, key, new)
             end)
@@ -113,7 +116,7 @@ function States:Get(ID: string)
     local state = States._cache.storedStates[ID] :: State
     if not state and RunService:IsClient() then
         local i = 0
-        while not state and i < 3 do
+        while not state and i < CLIENT_GET_WAIT_SEC do
             state = States._cache.storedStates[ID] :: State
             task.wait(1)
             i += 1
@@ -160,7 +163,7 @@ elseif RunService:IsClient() then
     end)
 
     local statesToCreate = RF:InvokeServer("_getCurrentReplicated")
-    assert(statesToCreate, "Could not get current states!")
+    assert(statesToCreate, "Could not getCurrentReplicated! Did you connect to this module on the server?")
 
     for _, st in pairs(statesToCreate) do
         States:_stateCreateAsync(st[1], st[2])
