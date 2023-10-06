@@ -1,0 +1,13 @@
+{
+  "name": "States Version 1",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "States": {
+        "$path": "States"
+      }
+    }
+
+  }
+}
