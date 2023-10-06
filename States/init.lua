@@ -4,14 +4,16 @@
 
     ------- Tutorial -------
     == Create a Replicated State ==
-        - From any script -
 
+        - From any script -
     local stateProperties = {id = "TestState", replicated = true, clientReadOnly = false}
     local stateVariables = {test = false}
     local state = States:Create(stateProperties, stateVariables)
-
     state:set("test", true)
-    state:get("test")
+
+        - From another script -
+    local state = States:Get("TestState")
+    state:get("test") -- returns true
 
     ====
 
