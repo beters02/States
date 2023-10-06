@@ -33,12 +33,9 @@ local RF = script.Events.RemoteFunction
 local RE = script.Events.RemoteEvent
 
 local Util = {}
-function Util.hardCopy(tab: table, ignoreStrIndex: table?)
+function Util.hardCopy(tab: table)
     local self = {}
     for i, v in pairs(tab) do
-        if ignoreStrIndex and table.find(ignoreStrIndex, v) then
-            continue
-        end
         self[i] = v
     end
     return self
