@@ -9,8 +9,8 @@
 ]]
 
 export type States = {
-    Create: (properties: StateProperties, defaultVar: table) -> (State),
-    Get: (ID: string) -> (State)
+    Create: (self: States, properties: StateProperties, defaultVar: table) -> (State),
+    Get: (self: States, ID: string) -> (State)
 }
 
 export type State = {
@@ -110,32 +110,38 @@ function States:Create(properties: StateProperties, defaultVar: table)
 end
 
 function States:Get(ID: string)
-    return States._cache.storedStates[ID] :: State or false
+    local state = States._cache.storedStates[ID] :: State
+    if not state and RunService:IsClient() then
+        local i = 0
+        while not state and i < 3 do
+            state = States._cache.storedStates[ID] :: State
+            task.wait(1)
+            i += 1
+        end
+    end
+    return state
 end
 -- ]]
 
 --@module_private [[
 function States:_stateCreateAsync(properties, defaultVar)
     local _state = State.new(properties, defaultVar)
-    States._cache.storedStates[properties.ID] = _state
+    States._cache.storedStates[properties.id] = _state
     return _state :: State
 end
 
 function States:_stateSetAsync(id, key, new)
-    local success, result = pcall(function()
-        return States:Get(id):set(key, new)
-    end)
-    if not success then error(result) end
-    return result
+    return States:Get(id):setAsync(key, new)
 end
 
 function States:_getCurrentReplicated()
     local _st = {}
-    for _, s in ipairs(States._cache.storedStates) do
+    for _, s in pairs(States._cache.storedStates) do
         if s.properties.replicated then
-            table.insert(_st, {s.properties, s.defaultVar})
+            table.insert(_st, {s.properties, s._variables})
         end
     end
+    return _st
 end
 -- ]]
 
@@ -143,16 +149,7 @@ end
 if RunService:IsServer() then
     local function ServerInvoke(_, action, ...)
         assert(States[action], "Action " .. tostring(action) .. " not found")
-
-        local _args, success, result
-        _args, success, result = table.pack(...), pcall(function()
-            return States[action](States, _args)
-        end)
-
-        assert(success, result)
-        
-        _args = nil
-        return result
+        return States[action](States, ...)
     end
     RF.OnServerInvoke = ServerInvoke
 elseif RunService:IsClient() then
@@ -164,10 +161,9 @@ elseif RunService:IsClient() then
 
     local statesToCreate = RF:InvokeServer("_getCurrentReplicated")
     assert(statesToCreate, "Could not get current states!")
+
     for _, st in pairs(statesToCreate) do
-        pcall(function()
-            States:_stateCreateAsync(st[1], st[2])
-        end)
+        States:_stateCreateAsync(st[1], st[2])
     end
     statesToCreate = nil
 end
