@@ -59,10 +59,8 @@ State.__index = State
 function State.new(properties, defaultVariables)
     local self = setmetatable({}, State) :: State
     self.new = nil
-    self.setAsync = properties.replicated and self.setAsync or nil
-
-    self._variables = defaultVariables and Util.hardCopy(defaultVariables) or {}
     self.properties = properties :: StateProperties
+    self._variables = Util.hardCopy(defaultVariables)
     return self
 end
 
@@ -84,11 +82,9 @@ function State:set(key: string, new: any)
         end
     end
 
-    self._variables[key] = new
-    return new
+    return self:setAsync(key, new)
 end
 
---@summary Set a Replicated State's Variable without replicating
 function State:setAsync(key: string, new: any)
     self._variables[key] = new
     return new
