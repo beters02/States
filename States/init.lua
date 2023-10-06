@@ -8,6 +8,11 @@
     Create a state by
 ]]
 
+export type States = {
+    Create: (properties: StateProperties, defaultVar: table) -> (State),
+    Get: (ID: string) -> (State)
+}
+
 export type State = {
     _variables: table,
 
@@ -47,15 +52,14 @@ function Util.fireAllClientsExcept(remote, player, ...)
     end
 end
 
---@class
+--@class [[
 local State = {}
 State.__index = State
 
 function State.new(properties, defaultVariables)
-    local self = {}
-    self = setmetatable(self, State) :: State
+    local self = setmetatable({}, State) :: State
     self.new = nil
-    if not properties.replicated then self.setAsync = nil end
+    self.setAsync = properties.replicated and self.setAsync or nil
 
     self._variables = defaultVariables and Util.hardCopy(defaultVariables) or {}
     self.properties = properties :: StateProperties
@@ -89,9 +93,9 @@ function State:setAsync(key: string, new: any)
     self._variables[key] = new
     return new
 end
---
+-- ]]
 
---@module
+--@module [[
 local States = {}
 States._cache = {storedStates = {}}
 
@@ -105,17 +109,19 @@ function States:Create(properties: StateProperties, defaultVar: table)
         end
     end
 
-    return States:_stateCreateAsync(properties, defaultVar)
+    return States:_stateCreateAsync(properties, defaultVar) :: State
 end
 
 function States:Get(ID: string)
-    return States._cache.storedStates[ID] or false
+    return States._cache.storedStates[ID] :: State or false
 end
+-- ]]
 
+--@module_private [[
 function States:_stateCreateAsync(properties, defaultVar)
     local _state = State.new(properties, defaultVar)
     States._cache.storedStates[properties.ID] = _state
-    return _state
+    return _state :: State
 end
 
 function States:_stateSetAsync(id, key, new)
@@ -134,8 +140,9 @@ function States:_getCurrentReplicated()
         end
     end
 end
+-- ]]
 
---@run
+--@run [[
 if RunService:IsServer() then
     local function ServerInvoke(_, action, ...)
         assert(States[action], "Action " .. tostring(action) .. " not found")
@@ -167,5 +174,6 @@ elseif RunService:IsClient() then
     end
     statesToCreate = nil
 end
+-- ]]
 
-return States
+return States :: States
