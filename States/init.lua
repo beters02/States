@@ -1,7 +1,19 @@
 --[[
-
     Reliable, replicated States.
     Initialied upon first require, must be initialized on both Client and Server.
+
+    ------- Tutorial -------
+    == Create a Replicated State ==
+        - From any script -
+
+    local stateProperties = {id = "TestState", replicated = true, clientReadOnly = false}
+    local stateVariables = {test = false}
+    local state = States:Create(stateProperties, stateVariables)
+
+    state:set("test", true)
+    state:get("test")
+
+    ====
 
 ]]
 
@@ -20,14 +32,14 @@ export type State = {
     _variables: table,
 
     get: (self: State, key: string) -> (any),
-    set: (self: State, key: string, variant: any) -> (boolean, any),
+    set: (self: State, key: string, variant: any) -> (any),
     properties: StateProperties
 }
 
 export type StateProperties = {
     id: string,
     replicated: boolean,
-    clientReadOnly: boolean,
+    clientReadOnly: boolean
 }
 
 local Players = game:GetService("Players")
