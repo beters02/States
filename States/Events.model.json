@@ -1,21 +1,13 @@
 {
-  "ClassName": "Folder",
-  "Children": [
-    {
-      "Name": "RemoteFunction",
-      "ClassName": "RemoteFunction"
-    },
-    {
-      "Name": "RemoteEvent",
-      "ClassName": "RemoteEvent"
-    },
-    {
-      "Name": "BindableEvent",
-      "ClassName": "BindableEvent"
-    },
-    {
-      "Name": "BindableFunction",
-      "ClassName": "BindableFunction"
-    }
-  ]
-}
+    "ClassName": "Folder",
+    "Children": [
+      {
+        "Name": "RemoteFunction",
+        "ClassName": "RemoteFunction"
+      },
+      {
+        "Name": "RemoteEvent",
+        "ClassName": "RemoteEvent"
+      }
+    ]
+  }
